@@ -18,47 +18,47 @@ Current benchmarking results -
 
 Clone the entire repo and edit the settings.py file.
 
-    ### Raw data Configuration :
+   ### Raw data Configuration :
 
-    FILENAME : Provide the filename which you would like to extract.
+   FILENAME : Provide the filename which you would like to extract.
 
-    DELIMITER : Specify the row-delimiters.
+   DELIMITER : Specify the row-delimiters.
 
-    DATA_LOCATION : Copy the necessary file in the folder ./data-files/
+   DATA_LOCATION : Copy the necessary file in the folder ./data-files/
 
-    ### Data Specific Configurations :
+   ### Data Specific Configurations :
 
-    MAIN_TABLE_NAME : Specify what you would like the table name to be.
+   MAIN_TABLE_NAME : Specify what you would like the table name to be.
 
-    MAIN_STAGING_TABLE_NAME : Specify what you would like the staging table name to be. Staging table will be used to temporarily store the data in between processes.
+   MAIN_STAGING_TABLE_NAME : Specify what you would like the staging table name to be. Staging table will be used to temporarily store the data in between processes.
 
-    RAW_DATA_TABLE : Specify what you would like the raw data table name to be.
+   RAW_DATA_TABLE : Specify what you would like the raw data table name to be.
 
-    MAIN_TABLE_COUNT : Specify a table where you would like to store a count of the a specific column, a category name for example.
+   MAIN_TABLE_COUNT : Specify a table where you would like to store a count of the a specific column, a category name for example.
 
-    MAIN_COLUMN_NAMES : Specify the column and their data types.
+   MAIN_COLUMN_NAMES : Specify the column and their data types.
 
-    HEADERS : Specify whether your data contains headers or not.
+   HEADERS : Specify whether your data contains headers or not.
 
-    KEY_COLUMNS : Specify a list of unique keys for the data set. 1 column name means a single Primary Key while multiple would become a composite key.
+   KEY_COLUMNS : Specify a list of unique keys for the data set. 1 column name means a single Primary Key while multiple would become a composite key.
 
-    FIELDNAMES : A list of a column names.
+   FIELDNAMES : A list of a column names.
 
-    SCD_TYPE : 1 - Ovewrite updates into the same column.
-               2 - Ovewrite updates into another column when updates are present.
+   SCD_TYPE : 1 - Ovewrite updates into the same column.
+              2 - Ovewrite updates into another column when updates are present.
     
-    UPDATE_COLUMNS : A dictionary of column names from where updates will be conisdered. 
+   UPDATE_COLUMNS : A dictionary of column names from where updates will be conisdered. 
 
      : A dictionary of column names that need to be updated accoridng to UPDATE_COLUMNS.
 
-    SCD_UPDATE_MAPPING : This provides a one to one mapping between UPDATE_COLUMNS and SCD_COLUMNS.
+   SCD_UPDATE_MAPPING : This provides a one to one mapping between UPDATE_COLUMNS and SCD_COLUMNS.
 
-    COUNT_COLUMN_NAMES : For a count only table the column name needs to specified.
+   COUNT_COLUMN_NAMES : For a count only table the column name needs to specified.
 
-    GROUP_BY_COLUMNS : Columns on which the group by is going to happen.
+   GROUP_BY_COLUMNS : Columns on which the group by is going to happen.
 
-    AGGREGATION : The type of aggregation and column name on which the aggregation needs to be performed.
+   AGGREGATION : The type of aggregation and column name on which the aggregation needs to be performed.
 
-    ALIAS_AGGREGATE_MAPPING : The alias name for the aggregate column name.
+   ALIAS_AGGREGATE_MAPPING : The alias name for the aggregate column name.
 
 

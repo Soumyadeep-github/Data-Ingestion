@@ -126,6 +126,7 @@ class DDL:
 #         rows = cur.fetchall()[0]
 #         print( rows[0])
 
+DDL().run()
 
 # print("DDL queries: stop")
 

@@ -2,10 +2,9 @@
 # database URI. 
 
 
-######################################
-##### DATABASE Configurations :#######
-######################################
-# DB_URL = "postgresql://root:root@db:5432/pipeline_db"
+######################################################################
+##################### DATABASE Configurations :#######################
+######################################################################
 SCHEMA = "ingestion_pipeline"
 DB_URL = 'postgresql://postgres:1995@localhost/testdb'
 DATA_LOCATION = './data-files/products.csv.gz'
@@ -14,18 +13,47 @@ DATA_LOCATION = './data-files/products.csv.gz'
 
 
 
-##############################################
-####### DATA specific Configurations :########
-##############################################
+######################################################################
+################### DATA specific Configurations :####################
+######################################################################
 
-MAIN_TABLE_NAME = "products_table"
-MAIN_STAGING_TABLE_NAME = "products_count_table"
+#----------------------------------------------------------#
+#---------------# Main Table Configuration #---------------#
+#----------------------------------------------------------#
 
-COLUMNS_DTYPES = {'name':"VARCHAR(100)", 
+#~~~~~~~~~~~~~~~~~~~~~ Data Definition ~~~~~~~~~~~~~~~~~~~~#
+MAIN_COLUMN_NAMES = {'name':"VARCHAR(100)", 
                     'sku':"VARCHAR(100)", 
                     'description':"VARCHAR(2000)"}
 
-KEY_COLUMNS = ['name', 'sku']
+MAIN_TABLE_NAME = "products_table"
+MAIN_STAGING_TABLE_NAME = "products_staging_table"
+RAW_DATA_TABLE = "products_raw"
 
-# DB_URL = 'sqlite:///Database/testing_.db'
+KEY_COLUMNS = ['name', 'sku']
 FIELDNAMES = ['name', 'sku', 'description']
+
+SCD_TYPE = 1
+
+#~~~~~~~~~~~~~~~~~~~~~ Data Manipulation ~~~~~~~~~~~~~~~~~~#
+UPDATE_COLUMNS = {'description': "VARCHAR(2000)"}
+SCD_COLUMNS = {'description': "VARCHAR(2000)"}
+# SCD_COLUMNS = {'new_description': "VARCHAR(2000)"}
+# SCD_UPDATE_MAPPING = {'description': 'new_description'}
+
+
+
+# OPTIONAL CONFIGURATIONS:
+#----------------------------------------------------------#
+#----------------# Count Table (OPTIONAL) #----------------#
+#----------------------------------------------------------#
+
+MAIN_TABLE_COUNT = "products_count_table"
+
+COUNT_COLUMN_NAMES = {'name': "VARCHAR(100) NOT NULL", 
+                      'number_of_records': "INT NOT NULL"}
+
+GROUP_BY_COLUMNS = ['name']
+
+AGGREGATION = {'COUNT': 'sku'}
+ALIAS_AGGREGATE_MAPPING = {'sku': 'number_of_records'}

@@ -1,100 +1,108 @@
+from settings import *
+
 class DML:
 
     def __init__(self):
         self.STATEMENTS = {}
     
-    def upsert_statements(self, tbl_name:str, 
-                            col_names:list,
-                            stg_cols:list, 
-                            stg_tblname:str,
-                            update:str=None, 
-                            scd_type:str=None,
-                            scd_cols:list=None,
-                            key_columns:list=None):
+    def upsert_statements(self):
         """Generate statements for inserting data from a source (staging) table into target table.
             
             col
         """
 
         dml_query = ""
-        insert_statement = f"INSERT INTO {tbl_name} "
+        insert_statement = f"INSERT INTO {MAIN_TABLE_NAME} "
         conflict_clause = "" 
-        insert_statement += f"({', '.join(col_names)})"
+        insert_statement += f"({', '.join(list(MAIN_COLUMN_NAMES.keys()))})"
         update_set = ""
 
-        if key_columns and update:
-
-            if scd_type is "1":        
-                for i, col in enumerate(update):
+        if KEY_COLUMNS != [] and UPDATE_COLUMNS != {}:
+            length_update_keys = len(UPDATE_COLUMNS.keys())
+            update_keys = list(UPDATE_COLUMNS.keys())
+            if SCD_TYPE == 1:        
+                for i, col in enumerate(list(UPDATE_COLUMNS.keys())):
                     update_set += f"{col} = EXCLUDED.{col}"
-                    if i == len(update)-1:
-                        update_set += ";"
-                    elif i <= len(update)-2:
-                        update_set += ","
-
-            elif scd_type == "2" and scd_cols: 
-                for i, sc_co in zip(range(len(update)), scd_cols):
-                    update_set += f"{sc_co} = EXCLUDED.{update[i]}"
-                    if i == len(update)-1:
+                    if i == length_update_keys-1:
                         update_set += " ;"
-                    elif i <= len(update)-2:
+                    elif i <= length_update_keys-2:
                         update_set += ", "
 
-            conflict_clause += f"ON CONFLICT ({', '.join(set(key_columns))}) DO UPDATE SET " + update_set
+            elif SCD_TYPE == 2 and SCD_COLUMNS != {} and SCD_UPDATE_MAPPING != {}: 
+                for i, sc_co in zip(range(length_update_keys), SCD_UPDATE_MAPPING.keys()):
+                    update_set += f"{SCD_UPDATE_MAPPING[sc_co]} = EXCLUDED.{sc_co}"
+                    if i == length_update_keys-1:
+                        update_set += " ;"
+                    elif i <= length_update_keys-2:
+                        update_set += ", "
 
-        elif key_columns and not update and not scd_type:
-            conflict_clause += f"ON CONFLICT ({', '.join(set(key_columns))}) DO NOTHING;"
+            conflict_clause += f"ON CONFLICT ({', '.join(set(KEY_COLUMNS))}) DO UPDATE SET " + update_set
 
-        select_into = "SELECT {names} FROM {tbl_name}".format(names=', '.join(col_names),
-                                                              tbl_name=tbl_name)
+        elif KEY_COLUMNS and UPDATE_COLUMNS == {} and not SCD_TYPE:
+            conflict_clause += f"ON CONFLICT ({', '.join(set(KEY_COLUMNS))}) DO NOTHING;"
 
-        select_from = "SELECT {names} FROM {stg_tblname}".format(names=', '.join(stg_cols),
-                                                                stg_tblname=stg_tblname)
+        select_into = "SELECT {names} FROM {tbl_name}".format(names=', '.join(MAIN_COLUMN_NAMES.keys()),
+                                                              tbl_name=MAIN_TABLE_NAME)
 
-        except_clause = f"""
+        select_from = "SELECT {names} FROM {stg_tblname}".format(names=', '.join(MAIN_COLUMN_NAMES.keys()),
+                                                                stg_tblname=MAIN_STAGING_TABLE_NAME)
+
+        dml_query += f"""
+                        {insert_statement}
                         {select_into} 
                         EXCEPT
                         {select_from}
+                        {conflict_clause}
                         """
-        dml_query += insert_statement + except_clause + conflict_clause
-        return dml_query
+        self.STATEMENTS["UPSERT_STATEMENT"] = dml_query
+        self.STATEMENTS["DELETE_QUERIES"] = f"""DELETE FROM {MAIN_STAGING_TABLE_NAME}"""
+        # return dml_query
     
-    def insert_statements(self,
-                            tblname_to:str,
-                            cols_to:list,
-                            tblname_from:str,
-                            cols_from:list,
-                            aggregate:list=None,
-                            col_alias:dict=None):
+    def insert_count(self):
         dml_query = ""
-        insert_statement = "INSERT INTO {} ({})".format(tblname_to, ', '.join(cols_to))
+        insert_statement = "INSERT INTO {} ({})".format(MAIN_TABLE_COUNT, ', '.join(COUNT_COLUMN_NAMES.keys()))
         aggregations = []
-        tblcols_from = ""
+        select_cols = ""
 
         group_by = "GROUP BY "
-        if aggregate:
+        if AGGREGATION:
 
-            for aggregate_type, aggregate_column in aggregate:
-                if col_alias:
-                    aggregations += [f"{aggregate_type}({aggregate_column}) AS {col_alias[aggregate_column]}"]
-                else:
+            for aggregate_type, aggregate_column in AGGREGATION.items():
+                try:
+                    aggregations += [f"{aggregate_type}({aggregate_column}) AS {ALIAS_AGGREGATE_MAPPING[aggregate_column]}"]
+                except:
                     aggregations += [f"{aggregate_type}({aggregate_column}) "]
-            
-            group_by += ', '.join(tblcols_from)
 
-            cols_from += " {names}, ".format(names=', '.join(cols_from)) + ", ".join(aggregations)
+            group_by += ', '.join(GROUP_BY_COLUMNS)
+
+            select_cols += " {names}, ".format(names=', '.join(GROUP_BY_COLUMNS)) + ", ".join(aggregations)
         else:
-            cols_from += " {names}".format(names=', '.join(cols_from))
+            select_cols += " {names}".format(names=', '.join(COUNT_COLUMN_NAMES.keys()))
 
-        select_from = "SELECT {} FROM {}".format(cols_from, tblname_from)
+        select = "SELECT {} ".format(select_cols)
+        from_tbl = "FROM {}".format(MAIN_TABLE_NAME)
 
         dml_query += f"""
-                    {insert_statement}
-                    {select_from}
-                    {group_by};
-                    """
-        return dml_query
-        
+                        {insert_statement}
+                        {select}
+                        {from_tbl}
+                        {group_by};
+                        """
+        self.STATEMENTS["COUNT_INSERT_STATEMENT"] = dml_query
+        # return dml_query
+    
+    def insert_raw_data(self):
+        dml_query = ""
+        insert_statement = "INSERT INTO {}".format(RAW_DATA_TABLE)
+        select_statement = "SELECT * FROM {};".format(MAIN_STAGING_TABLE_NAME)
+        dml_query += f"""
+                        {insert_statement}
+                        {select_statement};
+                        """
+        self.STATEMENTS["RAW_DATA_INSERT"] = dml_query
+        # return dml_query
+    
+
     COMMANDS = {}
 
     # COMMANDS['Insert_Products'] = """
@@ -162,3 +170,25 @@ class DML:
     COMMANDS['Flush_Staging_tables'] = """DELETE FROM  products_staging_table;"""
 
     COMMANDS['Flush_Staging_tables_'] = """DELETE FROM  count_table_stg;"""
+
+    # def run(self):
+    #     self.upsert_statements()
+    #     self.insert_count()
+    #     self.insert_raw_data()
+    #     DML_QUERIES = self.STATEMENTS
+    #     # for i in DML_QUERIES:
+    #     #     print(i)
+    #     print(12)
+    #     return DML_QUERIES
+# if __name__ == '__main__':
+# def run():
+dml_instance = DML()
+dml_instance.upsert_statements()
+dml_instance.insert_count()
+dml_instance.insert_raw_data()
+DML_QUERIES = dml_instance.STATEMENTS
+# for i in DML_QUERIES:
+    # print(i)
+    # return DML_QUERIES
+print(1)
+

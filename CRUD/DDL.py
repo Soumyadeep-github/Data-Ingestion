@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../data_pipeline')
+
 from settings import *
 from connection import connect
 
@@ -10,6 +13,19 @@ class DDL:
     def create_tables(self, 
                       key:bool=False,
                       ):
+        """Generate SQL query for creating tables. 
+        Three tables shall be created:
+            - main table (where unique key constraints apply)
+            - staging table (to store temporary data in between processes)
+            - raw table (to store all the data without any modification)
+        
+        Parameters
+        ----------
+        key : boolean variable
+
+        If true then column names defined in KEY_COLUMNS will be considered
+        as primary keys or else there will be no primary keys.
+        """
 
         ddl_query = ""
         columns = ""
@@ -52,82 +68,30 @@ class DDL:
         self.TABLE_DEFS[RAW_DATA_TABLE.upper()] = raw_query
 
     def count_table(self):
+        """
+        Create a SQL table to store the count of specified columns.
+        """
         if COUNT_COLUMN_NAMES != []:
-            self.TABLE_DEFS[MAIN_TABLE_COUNT.upper()] = f"CREATE TABLE IF NOT EXISTS {MAIN_TABLE_COUNT} ({', '.join([col+' '+dtype for col,dtype in COUNT_COLUMN_NAMES.items()])});"
-
-    
-    TABLES['PRODUCTS_TABLE'] = """
-                        CREATE TABLE IF NOT EXISTS  products_table(
-                        name VARCHAR(100),
-                        sku VARCHAR(200) NOT NULL,
-                        description VARCHAR(20000),
-                        PRIMARY KEY (sku, name)
-                        );
-                    """
-
-    TABLES['PRODUCTS_TABLE_STAGE'] = """
-                            CREATE TABLE IF NOT EXISTS  products_staging_table(
-                            name VARCHAR(100),
-                            sku VARCHAR(200) NOT NULL,
-                            description VARCHAR(20000)
-                            );
-                           """
-    
-    TABLES['PRODUCTS_TABLE_RAW'] = """
-                            CREATE TABLE IF NOT EXISTS  products_raw(
-                            name VARCHAR(100),
-                            sku VARCHAR(200) NOT NULL,
-                            description VARCHAR(20000)
-                            );
-                           """
-
-    TABLES['AGGREGATE_TABLE'] = """
-                        CREATE TABLE IF NOT EXISTS  products_count_table(
-                        name VARCHAR(100) NOT NULL,
-                        number_of_records INT
-                        );
-                      """
-
-    TABLES['AGGREGATE_TABLE_STAGE'] = """
-                        CREATE TABLE IF NOT EXISTS  count_table_stg(
-                        name VARCHAR(100) NOT NULL,
-                        number_of_records VARCHAR(200)
-                        );
-                        """
+            self.TABLE_DEFS[MAIN_TABLE_COUNT.upper()] = f"CREATE TABLE IF NOT EXISTS {MAIN_TABLE_COUNT} ({', '.join([col+' '+dtype \
+                                                for col,dtype in COUNT_COLUMN_NAMES.items()])});"
 
     def run(self):
         self.create_tables(True)
         self.count_table()
         queries_inst = list(self.TABLE_DEFS.values())
-        print("DDL queries: start")
+        # print("DDL queries: start")
+        # for i in queries_inst:
+        #     print(i)
         with connect() as conn:
             with conn.cursor() as cur:
                 for query in queries_inst:
                     cur.execute(query)
-                cur.execute("SELECT * FROM pg_catalog.pg_tables;")
-                rows = cur.fetchall()[0]
-                print( rows[0])
+                # cur.execute("SELECT * FROM pg_catalog.pg_tables;")
+                # rows = cur.fetchall()[0]
+                # print( rows[0])
 
-    # TABLES['DROP_ALL'] = """DROP TABLE IF EXISTS products_table;
-    #                         DROP TABLE IF EXISTS products_count_table;"""
-
-# if __name__ == "__main__":
-# def run():
-# definition_instance = DDL()
-# definition_instance.create_tables(True)
-# definition_instance.count_table()
-# queries_inst = list(definition_instance.TABLE_DEFS.values())
-# print("DDL queries: start")
-# with connect() as conn:
-#     with conn.cursor() as cur:
-#         for query in queries_inst:
-#             cur.execute(query)
-#         cur.execute("SELECT * FROM pg_catalog.pg_tables;")
-#         rows = cur.fetchall()[0]
-#         print( rows[0])
 
 DDL().run()
 
-# print("DDL queries: stop")
 
 

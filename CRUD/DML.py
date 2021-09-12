@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../data_pipeline')
 from settings import *
 
 class DML:
@@ -6,9 +8,9 @@ class DML:
         self.STATEMENTS = {}
 
     def upsert_statements(self):
-        """Generate statements for inserting data from a source (staging) table into target table.
-            
-            col
+        """Generate SQL query for inserting data from a 
+        source (staging) table into target table.
+        Supports column updates too.
         """
 
         dml_query = ""
@@ -19,10 +21,13 @@ class DML:
 
         if KEY_COLUMNS != [] and UPDATE_COLUMNS != {}:
             length_update_keys = len(UPDATE_COLUMNS.keys())
-            update_keys = list(UPDATE_COLUMNS.keys())
-            if SCD_TYPE == 1:        
+            # update_keys = list(UPDATE_COLUMNS.keys())
+            if SCD_TYPE == 1:  
                 for i, col in enumerate(list(UPDATE_COLUMNS.keys())):
-                    update_set += f"{col} = EXCLUDED.{col}"
+                    if UPDATE_COLUMNS[col] == "INT" or UPDATE_COLUMNS[col] == "FLOAT":
+                        update_set += f"{col} = EXCLUDED.{col}" # + {MAIN_TABLE_NAME}.{col}"
+                    else:
+                        update_set += f"{col} = EXCLUDED.{col}"
                     if i == length_update_keys-1:
                         update_set += " ;"
                     elif i <= length_update_keys-2:
@@ -30,7 +35,11 @@ class DML:
 
             elif SCD_TYPE == 2 and SCD_COLUMNS != {} and SCD_UPDATE_MAPPING != {}: 
                 for i, sc_co in zip(range(length_update_keys), SCD_UPDATE_MAPPING.keys()):
-                    update_set += f"{SCD_UPDATE_MAPPING[sc_co]} = EXCLUDED.{sc_co}"
+                    if UPDATE_COLUMNS[sc_co] == "INT" or UPDATE_COLUMNS[sc_co] == "FLOAT":
+                        update_set += f"{SCD_UPDATE_MAPPING[sc_co]} = EXCLUDED.{sc_co}" # + {SCD_UPDATE_MAPPING[sc_co]}"
+                    else:
+                        update_set += f"{SCD_UPDATE_MAPPING[sc_co]} = EXCLUDED.{sc_co}"
+                    
                     if i == length_update_keys-1:
                         update_set += " ;"
                     elif i <= length_update_keys-2:
@@ -58,6 +67,9 @@ class DML:
         self.STATEMENTS["UPSERT_STATEMENT"] = dml_query
 
     def insert_count(self):
+        """Generate SQL query for inserting data into a table to keep 
+        track of the count of a specific column.
+        """
         dml_query = ""
         insert_statement = "INSERT INTO {} ({})".format(MAIN_TABLE_COUNT, ', '.join(COUNT_COLUMN_NAMES.keys()))
         aggregations = []
@@ -91,6 +103,8 @@ class DML:
 
 
     def insert_raw_data(self):
+        """Generate SQL query for inserting raw data into a separate table.
+        """
         dml_query = ""
         insert_statement = "INSERT INTO {}".format(RAW_DATA_TABLE)
         select_statement = "SELECT * FROM {};".format(MAIN_STAGING_TABLE_NAME)
@@ -102,6 +116,7 @@ class DML:
 
 
     def get_delete_statement(self):
+        """Flush staging tables."""
         self.STATEMENTS["DELETE_QUERIES"] = """DELETE FROM {};""".format(MAIN_STAGING_TABLE_NAME)
 
 
@@ -114,4 +129,5 @@ class DML:
 dml_instance = DML()
 dml_instance.run()
 STATEMENTS = dml_instance.STATEMENTS
-# print(STATEMENTS)
+# for i in STATEMENTS.values():
+#     print(i)

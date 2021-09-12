@@ -130,3 +130,4 @@ dmypy.json
 
 /pgdata
 /multi-process
+/code-debugging

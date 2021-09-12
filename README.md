@@ -4,9 +4,9 @@ The aim of this project is to automate data ingestion from flat files like CSV a
 
 Current benchmarking results - 
 
-80 MB - 500000 ROWS - Ingested within 25 seconds
-2  MB - 100000 ROWS - Ingested within 1.5 seconds
-25 MB - 1000000 ROWS - Ingested within 18 seconds
+- 80 MB - 500000 ROWS - Ingested within 25 seconds
+- 2  MB - 100000 ROWS - Ingested within 1.5 seconds
+- 25 MB - 1000000 ROWS - Ingested within 18 seconds
 
 ## Benefits 
 

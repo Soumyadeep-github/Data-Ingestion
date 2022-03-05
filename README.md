@@ -1,6 +1,6 @@
 # Data Ingestion Pipeline
 
-The aim of this project is to automate data ingestion from flat files like CSV and compressed files like GZIP into a database like Postgres. The entire setup is automated used Docker and it will be pretty fast too as multiprocessing is being used.
+The aim of this project is to automate data ingestion from flat files like CSV and compressed files like GZIP into a database like Postgres. The entire setup is automated used Docker and is pretty fast too as multiprocessing is being used.
 
 Current benchmarking results - 
 

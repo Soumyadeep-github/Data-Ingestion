@@ -49,7 +49,7 @@ Clone the entire repo and edit the settings.py file.
     
    UPDATE_COLUMNS : A dictionary of column names from where updates will be conisdered. 
 
-   SCD_COLUMNS : A dictionary of column names that need to be updated accoridng to UPDATE_COLUMNS.
+   SCD_COLUMNS : A dictionary of column names that need to be updated according to UPDATE_COLUMNS.
 
    SCD_UPDATE_MAPPING : This provides a one to one mapping between UPDATE_COLUMNS and SCD_COLUMNS.
 

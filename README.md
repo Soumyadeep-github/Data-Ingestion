@@ -44,8 +44,8 @@ Clone the entire repo and edit the settings.py file.
 
    FIELDNAMES : A list of a column names.
 
-   SCD_TYPE : 1 - Ovewrite updates into the same column.
-              2 - Ovewrite updates into another column when updates are present.
+   SCD_TYPE : 1 - Overwrite updates into the same column.
+              2 - Overwrite updates into another column when updates are present.
     
    UPDATE_COLUMNS : A dictionary of column names from where updates will be conisdered. 
 

@@ -1,6 +1,7 @@
 import psycopg2
 from settings import *
 
+@staticmethod
 def connect():
     """
     Create a connection object to the Postgres database.
